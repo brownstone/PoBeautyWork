@@ -19,9 +19,10 @@ namespace PokerH
         public bool _turn;
         public User _user;
 
-        public void Init(int index)
+        public void Init(int index, string nickname)
         {
             _playerId = 10 + index;
+            _nickname = nickname;
             _isAI = true;
 
         }
@@ -51,10 +52,11 @@ namespace PokerH
 
         public void Init()
         {
+            string[] nicknames = { "terran", "protoss", "zerg" };
             for (int i = 0; i < _players.Length; i++)
             {
                 Player p = new Player();
-                p.Init(i);
+                p.Init(i, nicknames[i]);
                 _players[i] = p;
             }
         }

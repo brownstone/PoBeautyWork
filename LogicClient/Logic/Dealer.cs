@@ -19,6 +19,7 @@ namespace PokerH
 
         UserManager _userManager = null;
         PlayerManager _playerManager = new();
+        Boarder _boarder = new Boarder();
         Rounder _rounder = new Rounder();
         Player _currTurnPlayer = null;
 
@@ -42,8 +43,8 @@ namespace PokerH
             _userManager = users;
 
             _playerManager.Init();
-            _rounder.Init();
-
+            _rounder.Init(_boarder);
+            //_boarder.Init();
         }
 
         public void SetRoomInfo(GameRoomInfo roomInfo)
@@ -85,7 +86,6 @@ namespace PokerH
 
         public void StartGame()
         {
-            //OnEnterGameSequence(GameSequence.GS_PREPARE);
             _currGameStatus.SetNewStatus(GameSequence.GS_PREPARE);
         }
 
@@ -242,8 +242,11 @@ namespace PokerH
                         //if (_currTurnPlayer != null)
                         //    _currTurnPlayer.Update(tick);
 
-                        //if (_rounder != null)
-                        //    _rounder.FirstCardDrop(tick);
+                        if (_currTurnPlayer._isAI == false)
+                            break;  // waiting...
+
+                        if (_rounder != null)
+                            _rounder.FirstCardThrow(_currTurnPlayer, tick);
                     }
 
                     break;
@@ -526,6 +529,7 @@ namespace PokerH
             Console.ForegroundColor = defaultColor;
 
             //_rounder.Render();
+            _boarder.Render();
             _playerManager.Render();
         }
 #endif

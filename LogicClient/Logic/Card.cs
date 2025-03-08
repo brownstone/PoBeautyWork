@@ -13,12 +13,13 @@ namespace PokerH
         // 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39
         // 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52
         static readonly int MAX_CARD_NUMBER_COUNT = 13; // 1(2), 2(3), 9(T), 10(J), 11(Q), 12(K), 13(A) ... 13
-        static readonly int MAX_CARD_COLOR_COUNT = 4;   // 1(S), 2(D), 3(H), 4(C)
-        static readonly int MAX_CARD_FULL_COUNT = MAX_CARD_NUMBER_COUNT * MAX_CARD_COLOR_COUNT; // 13 * 4 = 52 { 1... 52 }
+        static readonly int MAX_CARD_SUIT_COUNT = 4;   // 1(S), 2(D), 3(H), 4(C)
+        static readonly int MAX_CARD_FULL_COUNT = MAX_CARD_NUMBER_COUNT * MAX_CARD_SUIT_COUNT; // 13 * 4 = 52 { 1... 52 }
         static readonly int MAX_CARD_JOKER_COUNT = 1;
         public static readonly int MAX_CARD_COUNT = MAX_CARD_FULL_COUNT + MAX_CARD_JOKER_COUNT; // 52 + 1 = 53
         public static readonly int JOKER1 = MAX_CARD_FULL_COUNT + 1; // 53
 
+        public static readonly int AceNum = 13; // Spade Ace
         public static readonly int SpadeAce = 13; // Spade Ace
         public static readonly int DiaAce = 26; // Diamo Ace
         public static readonly int HeartAce = 39; // Heart Ace
