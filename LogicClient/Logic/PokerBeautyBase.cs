@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PokerH
 {
-    public class PokerBeautyBase
+    public partial class PokerBeautyBase
     {
         protected UserManager _userManager = new UserManager();
         public Dealer _dealer = new Dealer();
@@ -17,7 +17,8 @@ namespace PokerH
 
         public void Init()
         {
-            //NetworkSender.Instance.Init(this);
+            NetworkSender.Instance.Init(this);
+
             _currRoomStatus.SetNewStatus(GameRoomStatus.GR_NONE);
             _dealer.Init(_userManager);
         }

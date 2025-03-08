@@ -25,7 +25,7 @@ namespace PokerH
 
         GameRoomInfo _roomInfo;
 
-        enum GameSequence { GS_NONE, GS_PREPARE, GS_PLAYER_SETTING, GS_GAME_START, GS_LOOP_START, GS_SHUFFLE, GS_DEAL_13, GS_ROUNDING, GS_RESULT, GS_CLEANUP, GS_ADMOBTIME, GS_RECHARGE_COIN, GS_CLEANUP_IMMEDI, GS_CLEANUP_LATE };
+        enum GameSequence { GS_NONE, GS_PREPARE, GS_PLAYER_SETTING, GS_GAME_START, GS_LOOP_START, GS_SHUFFLE, GS_DEAL_13, GS_DEALING_13, GS_ROUNDING, GS_RESULT, GS_CLEANUP, GS_ADMOBTIME, GS_RECHARGE_COIN, GS_CLEANUP_IMMEDI, GS_CLEANUP_LATE };
         enum RoundSequence { RS_NONE, RS_START, RS_LOOP_START, RS_TURN_START, RS_TAKE_2, RS_FIRST_CARD_DROP, RS_FIRST_CARD_DROPPING, RS_SECOND_CARD_DROP, RS_SECOND_CARD_DROPPING, RS_DAMAGE, RS_TURN_END, RS_WIN_CHECK, RS_ROUND_END_NOTHING }
 
         StatusTimer<GameSequence> _currGameStatus = new StatusTimer<GameSequence>();
@@ -131,11 +131,30 @@ namespace PokerH
                     break;
 
                 case GameSequence.GS_DEAL_13:
-                    _currGameStatus._accumTime += tick;
-                    if (_currGameStatus._accumTime > DEAL_13_TIMER)
                     {
-                        _currGameStatus.SetNewStatus(GameSequence.GS_ROUNDING);
-                        _currRoundStatus.SetNewStatus(RoundSequence.RS_START);
+                        List<int> cards = _decks.GetRange(_deckIndex, 9);
+                        _deckIndex += 9;
+                        NetworkSender.Instance.SendDeal9Cards(cards);
+
+                        cards = _decks.GetRange(_deckIndex, 2);
+                        _deckIndex += 2;
+                        NetworkSender.Instance.SendDeal2Cards(_playerManager._players[0]._playerId, cards);
+
+                        cards = _decks.GetRange(_deckIndex, 2);
+                        _deckIndex += 2;
+                        NetworkSender.Instance.SendDeal2Cards(_playerManager._players[1]._playerId, cards);
+
+                        _currGameStatus.SetNewStatus(GameSequence.GS_DEALING_13);
+                    }
+                    break;
+                case GameSequence.GS_DEALING_13:
+                    {
+                        _currGameStatus._accumTime += tick;
+                        if (_currGameStatus._accumTime > DEAL_13_TIMER)
+                        {
+                            _currGameStatus.SetNewStatus(GameSequence.GS_ROUNDING);
+                            _currRoundStatus.SetNewStatus(RoundSequence.RS_START);
+                        }
                     }
                     break;
 
@@ -533,6 +552,40 @@ namespace PokerH
             _playerManager.Render();
         }
 #endif
+
+        public void HandleGameStart(int playerId, int adType)
+        {
+            //_retryGame = false;
+            //_adType = adType;
+            _currGameStatus.SetNewStatus(GameSequence.GS_CLEANUP);
+        }
+        public void HandleGameRetry(int playerId, int adType)
+        {
+            //_retryGame = true;
+            //_adType = adType;
+            _currGameStatus.SetNewStatus(GameSequence.GS_CLEANUP);
+        }
+
+        public void HandleDeal9Cards(List<int> cards)
+        {
+            for (int i = 0; i < 3; i++) 
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    _boarder.PlaceCard(i + 1, j + 1, cards[i * 3 + j]);
+                }
+            }
+            
+            //OnEventDeal9Cards(cards);
+        }
+        public void HandleDeal2Cards(int playerId, List<int> cards)
+        {
+            Player p = _playerManager.GetPlayer(playerId);
+            p.AddCards(cards);
+
+            //OnEventDeal2Cards(playerId, cards);
+        }
+
 
     }
 }

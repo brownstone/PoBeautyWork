@@ -50,7 +50,6 @@ namespace PokerH
             rank = 0;
         }
     }
-}
 
     public struct GameRoomInfo
     {
@@ -66,3 +65,4 @@ namespace PokerH
         }
     }
 }
+
