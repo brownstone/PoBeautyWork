@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,9 +11,208 @@ namespace PokerH
     {
 
         Boarder _boarder = null;
-        Player _turnPlayer = null;
+        PoBeautyRule _rule = new PoBeautyRule();
 
         //BoardPlacer _bp = new BoardPlacer();
+        BeautyResult _topBeautyResult = new BeautyResult();
+        bool _haveResult = false;
+        bool _sendPass = false;
+        bool _sendFirstCard = false;
+        bool _sendSecondCard = false;
+
+        float _delayTime = 0f;
+
+        public void Init(Boarder boarder)
+        {
+            _boarder = boarder;
+            _rule.Init();
+        }
+
+        public void OnTurnStart(Player player)
+        {
+            _delayTime = 0.7f;
+            _topBeautyResult.Clear();
+            _haveResult = false;
+            _sendPass = false;
+            _sendFirstCard = false;
+            _sendSecondCard = false;
+        }
+
+        public void Think(Player player, float tick)
+        {
+            if (player._isAI == false)
+                return;
+
+            if (_delayTime > 0.0f)
+            {
+                _delayTime -= tick;
+                return;
+            }
+            _delayTime = 1.0f;
+            if (_sendFirstCard)
+                return;
+            if (_sendPass)
+                return;
+
+            _rule.SetUpCandis(_boarder.GetCachedSlot());
+            _rule.SetUpBeautys(player);
+
+            _topBeautyResult = _rule.GetTopBeauty();
+            _haveResult = true;
+
+            if (_topBeautyResult.rank == 0)
+            {
+                NetworkSender.Instance.SendPass(player._playerId);
+                _sendPass = true;
+            }
+            else
+            {
+                int y = GetFirstY(_topBeautyResult.index);
+                int x = GetFirstX(_topBeautyResult.index);
+
+                NetworkSender.Instance.SendFirstPlace(player._playerId, y, x, _topBeautyResult.cardFirst);
+                _sendFirstCard = true;
+            }
+        }
+
+
+        //public void FirstCardThrow(Player player, float tick)
+        //{
+        //    if (player._isAI == false)
+        //        return;
+
+        //    if (_sendFirstCard)
+        //        return;
+
+        //    _rule.SetUpCandis(_boarder.GetCachedSlot());
+        //    _rule.SetUpBeautys(player);
+
+        //    _topBeautyResult = _rule.GetTopBeauty();
+        //    _haveResult = true;
+
+        //    int y = GetFirstY(_topBeautyResult.index);
+        //    int x = GetFirstX(_topBeautyResult.index);
+
+        //    NetworkSender.Instance.SendFirstPlace(player._playerId, y, x, _topBeautyResult.cardFirst);
+        //    _sendFirstCard = true;
+        //}
+
+        public void SecondCardChoice(Player player, float tick)
+        {
+            if (player._isAI == false)
+                return;
+
+            if (_delayTime > 0.0f)
+            {
+                _delayTime -= tick;
+                return;
+            }
+            if (_sendSecondCard)
+                return;
+
+
+            int y = GetSecondY(_topBeautyResult.index);
+            int x = GetSecondX(_topBeautyResult.index);
+
+            NetworkSender.Instance.SendSecondPlace(player._playerId, y, x, _topBeautyResult.cardSecond);
+            _sendSecondCard = true;
+        }
+
+        public void OnCleanUp()
+        {
+            _topBeautyResult.Clear();
+            _haveResult = false;
+            _sendPass = false;
+            _sendFirstCard = false;
+            _sendSecondCard = false;
+        }
+
+        int GetFirstY(int index)
+        {
+            int y = 0;
+            if (index == 0)                y = 0;
+            else if (index == 1)           y = 0;
+            else if (index == 2)           y = 0;
+            else if (index == 3)           y = 0;
+            else if (index == 4)           y = 0;
+            else if (index == 5)           y = 1;
+            else if (index == 6)           y = 2;
+            else if (index == 7)           y = 3;
+
+            return y;
+        }
+        int GetFirstX(int index)
+        {
+            int x = 0;
+            if (index == 0)                 x = 0;
+            else if (index == 1)            x = 1;
+            else if (index == 2)            x = 2;
+            else if (index == 3)            x = 3;
+            else if (index == 4)            x = 4;
+            else if (index == 5)            x = 4;
+            else if (index == 6)            x = 4;
+            else if (index == 7)            x = 4;
+
+            return x;
+        }
+        int GetSecondY(int index)
+        {
+            int y = 0;
+            if (index == 0)                y = 4;
+            else if (index == 1)           y = 4;
+            else if (index == 2)           y = 4;
+            else if (index == 3)           y = 4;
+            else if (index == 4)           y = 4;
+            else if (index == 5)           y = 1;
+            else if (index == 6)           y = 2;
+            else if (index == 7)           y = 3;
+
+            return y;
+        }
+        int GetSecondX(int index)
+        {
+            int x = 0;
+            if (index == 0)                x = 4;
+            else if (index == 1)           x = 1;
+            else if (index == 2)           x = 2;
+            else if (index == 3)           x = 3;
+            else if (index == 4)           x = 0;
+            else if (index == 5)           x = 0;
+            else if (index == 6)           x = 0;
+            else if (index == 7)           x = 0;
+
+            return x;
+        }
+
+#if LOGIC_CONSOLE_TEST
+        public void Render()
+        {
+            var defaultColor = Console.ForegroundColor;
+
+            if (_haveResult)
+            {
+                string[] ranks = { "High Card", "One Pair", "Two Pairs", "Triful", "Straight", "Flush", "Full House", "Four Card", "Straight Flush", "Royal Flush" };
+                if (_topBeautyResult.rank == 0)
+                {
+                    Console.WriteLine("   Damage PASS ");
+                }
+                else
+                    Console.WriteLine($"   Damage {ranks[_topBeautyResult.rank]}");
+            }
+            else
+            {
+                Console.WriteLine();
+            }
+
+            Console.ForegroundColor = defaultColor;
+        }
+#endif
+
+
+    }
+
+    public class PoBeautyRule
+    {
 
         static readonly int CHECK_COUNT = 8;
 
@@ -21,6 +221,7 @@ namespace PokerH
 
         List<int>[] _candis = new List<int>[CHECK_COUNT];
         BeautyResult[] _beautyResults = new BeautyResult[CHECK_COUNT];
+        BeautyResult _topBeauty = new BeautyResult();
 
         List<int> _cards = new List<int>(5);
 
@@ -29,14 +230,8 @@ namespace PokerH
                                      // 0, A, 2, 3, 4, 5, 6, 7, 8, 9, T, J, Q, K, A
                                      // 0, 1, 2,                        11,12,13,14 
 
-        float _delayTime = 0f;
-
-
-
-        public void Init(Boarder boarder)
+        public void Init()
         {
-            _boarder = boarder;
-
             for (int i = 0; i < _candis.Length; i++)
             {
                 _candis[i] = new List<int>();
@@ -72,30 +267,8 @@ namespace PokerH
             }
         }
 
-        public void OnTurnStart(Player player)
+        public void SetUpCandis(int[,] boarderSlots)
         {
-            _delayTime = 0.7f;
-        }
-
-        public void FirstCardThrow(Player player, float tick)
-        {
-            if (_turnPlayer._isAI == false)
-                return;
-
-            if (_delayTime > 0.0f)
-            {
-                _delayTime -= tick;
-                return;
-            }
-
-            Think(player);
-        }
-
-        void Think(Player player)
-        {
-            int[,] slots = _boarder.GetCachedSlot();
-
-
             for (int i = 0; i < CHECK_COUNT; i++)
             {
                 _candis[i].Clear();
@@ -105,7 +278,7 @@ namespace PokerH
             {
                 int check_y = Boarder.UnpackY(_checkPos[i]);
                 int check_x = Boarder.UnpackX(_checkPos[i]);
-                if (slots[check_y, check_x] > 0)
+                if (boarderSlots[check_y, check_x] > 0)
                     continue;
 
                 {
@@ -113,26 +286,25 @@ namespace PokerH
                     {
                         int y = Boarder.UnpackY(_candisPos[i][j]);
                         int x = Boarder.UnpackX(_candisPos[i][j]);
-                        int c = slots[y, x];
+                        int c = boarderSlots[y, x];
                         _candis[i].Add(c);
                     }
                 }
             }
+        }
 
-            
+        public void SetUpBeautys(Player player)
+        {
             for (int i = 0; i < CHECK_COUNT; i++)
             {
                 _beautyResults[i].Clear();
-                
+
 
                 if (_candis[i].Count == 0)
                     continue;
 
                 BeautyResult topRank = new BeautyResult();
                 topRank.Clear();
-
-                BeautyResult curRank = new BeautyResult();
-                curRank.Clear();
 
 
                 for (int j = 0; j < 4; j++)
@@ -154,6 +326,7 @@ namespace PokerH
 
                         if (rank > topRank.rank)
                         {
+                            topRank.index = i;
                             topRank.rank = rank;
                             topRank.cardFirst = firstHandCard;
                             topRank.cardSecond = secondHandCard;
@@ -163,7 +336,26 @@ namespace PokerH
                 _beautyResults[i] = topRank;
             }
 
+            _topBeauty.Clear();
+            bool haveRank = false;
+            for (int i = 0; i < CHECK_COUNT; i++)
+            {
+                if (_beautyResults[i].rank > _topBeauty.rank)
+                {
+                    haveRank = true;
+                    _topBeauty = _beautyResults[i];
+                }
+            }
 
+            if (haveRank == false)
+            {
+
+            }
+        }
+
+        public BeautyResult GetTopBeauty()
+        {
+            return _topBeauty;
         }
 
         int GetRank(List<int> cards)
@@ -221,9 +413,6 @@ namespace PokerH
             if (onePair)
                 return 1;
             bool highCard = true;
-
-
-
 
             return 0;
         }
@@ -468,12 +657,8 @@ namespace PokerH
                 }
             }
 
-
             return false;
         }
-
-
-
-
     }
+
 }

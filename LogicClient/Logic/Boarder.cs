@@ -98,6 +98,12 @@ namespace PokerH
             return _candis;
         }
 
+        public void OnCleanUp()
+        {
+            int length = _slots.Length;
+            Array.Clear(_slots, 0, _slots.Length);
+        }
+
 
 #if LOGIC_CONSOLE_TEST
         public void Render()
@@ -108,24 +114,24 @@ namespace PokerH
             Console.WriteLine(" ======================= Boarder ========================== ");
             var defaultColor = Console.ForegroundColor;
 
-            Console.Write("       ");
+            Console.Write("         ");
             for (int x = 0; x < _slots.GetLength(1); x++)
             {
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write("{0, 2}", x);
+                Console.Write(" {0, 2} ", x);
             }
             Console.WriteLine("");
 
             for (int y = 0; y < _slots.GetLength(0); y++)
             {
-                Console.Write("{0, 2} {1, 4}", y, PackYX(y, 0));
+                Console.Write("{0, 2} {1, 4}  ", y, PackYX(y, 0));
                 for (int x = 0; x < _slots.GetLength(1); x++)
                 {
                     int c = _slots[y, x];
                     if (c == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.Write(" .");
+                        Console.Write("  . ");
                     }
                     else
                         Card.DrawCard(c);

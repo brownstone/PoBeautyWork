@@ -31,7 +31,7 @@ namespace PokerH
             _user = user;
             _playerId = user._id;
             _nickname = user._name;
-            _isAI = false;
+            _isAI = true;
         }
 
         public void OnGameReStart()
@@ -71,7 +71,7 @@ namespace PokerH
                 if (exist)
                     continue;
 
-                for (int j = 0; j < _players.Length; j++)
+                for (int j = _players.Length - 1; j >= 0; j--)
                 {
                     Player p = _players[j];
                     if (p._isAI)
@@ -111,16 +111,47 @@ namespace PokerH
 #endif
             return null;
         }
-        public bool GetPlayerIds(int[] playerIds)
+        public Player GetFirstTurnPlayer()
         {
-            int index = 0;
-            foreach (Player p in _players)
+            if (_players.Length > 1)
+                return _players[1];
+
+#if LOGIC_CONSOLE_TEST
+            Debugger.Break();
+#else
+            UnityEngine.Debug.Log("GetFirstTurnPlayer failed!");
+            UnityEngine.Debug.Break();
+#endif
+            return null;
+        }
+
+        public Player GetNextTurner(Player currPlayer)
+        {
+            //Array.FindIndex(_players, e => e._playerId
+            int index = Array.IndexOf(_players, currPlayer);
+            if (index == -1)
             {
-                playerIds[index++] = p._playerId;
+#if LOGIC_CONSOLE_TEST
+                Debugger.Break();
+#else
+                UnityEngine.Debug.Log("GetFirstTurnPlayer failed!");
+                UnityEngine.Debug.Break();
+#endif
+                return null;
             }
 
-            return true;
+            index = (index + 1) % _players.Length;
+            return _players[index];
         }
+
+        public void OnCleanUp()
+        {
+            for (int i = 0; i < _players.Length; i++)
+            {
+                _players[i]._hands.Clear();
+            }
+        }
+
 
 #if LOGIC_CONSOLE_TEST
         public void Render()

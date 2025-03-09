@@ -16,7 +16,6 @@ namespace PokerH
 {
     public class Dealer
     {
-
         UserManager _userManager = null;
         PlayerManager _playerManager = new();
         Boarder _boarder = new Boarder();
@@ -26,7 +25,7 @@ namespace PokerH
         GameRoomInfo _roomInfo;
 
         enum GameSequence { GS_NONE, GS_PREPARE, GS_PLAYER_SETTING, GS_GAME_START, GS_LOOP_START, GS_SHUFFLE, GS_DEAL_13, GS_DEALING_13, GS_ROUNDING, GS_RESULT, GS_CLEANUP, GS_ADMOBTIME, GS_RECHARGE_COIN, GS_CLEANUP_IMMEDI, GS_CLEANUP_LATE };
-        enum RoundSequence { RS_NONE, RS_START, RS_LOOP_START, RS_TURN_START, RS_TAKE_2, RS_FIRST_CARD_DROP, RS_FIRST_CARD_DROPPING, RS_SECOND_CARD_DROP, RS_SECOND_CARD_DROPPING, RS_DAMAGE, RS_TURN_END, RS_WIN_CHECK, RS_ROUND_END_NOTHING }
+        enum RoundSequence { RS_NONE, RS_START, RS_LOOP_START, RS_TURN_START, RS_TAKE_CARDS, RS_THINK, RS_PASS, RS_PASSING, RS_FIRST_CARD_PLACE, RS_FIRST_CARD_PLACING, RS_SECOND_CARD_PLACE, RS_SECOND_CARD_PLACING, RS_DAMAGE, RS_TURN_END, RS_WIN_CHECK, RS_ROUND_END_NOTHING }
 
         StatusTimer<GameSequence> _currGameStatus = new StatusTimer<GameSequence>();
         StatusTimer<RoundSequence> _currRoundStatus = new StatusTimer<RoundSequence>();
@@ -37,6 +36,7 @@ namespace PokerH
         float DEAL_13_TIMER = 2.0f;
         float CARD_THROW_TIMER = 2.0f;
         int _turnCount;
+        int _turnIndex = 0;
 
         public void Init(UserManager users)
         {
@@ -211,6 +211,7 @@ namespace PokerH
                     break;
                 case GameSequence.GS_CLEANUP_IMMEDI:
                     {
+                        DoCleanUp();
                         _currGameStatus.SetNewStatus(GameSequence.GS_LOOP_START);
                     }
                     break;
@@ -220,6 +221,7 @@ namespace PokerH
 
                         if (_currGameStatus._accumTime > 0.6f)
                         {
+                            DoCleanUp();
                             _currGameStatus.SetNewStatus(GameSequence.GS_LOOP_START);
                         }
                     }
@@ -231,62 +233,98 @@ namespace PokerH
 
         void UpdateRound(float tick)
         {
-            //enum RoundSequence { RS_NONE, RS_START, RS_LOOP_START, RS_TURN_START, RS_TAKE_2,
-            /// RS_FIRST_CARD_DROP, RS_FIRST_CARD_DROPPING, RS_SECOND_CARD_DROP, RS_SECOND_CARD_DROPPING, 
-            /// RS_DAMAGE, RS_TURN_END, RS_WIN_CHECK, RS_ROUND_END_NOTHING }
             switch (_currRoundStatus._currStatus)
             {
                 case RoundSequence.RS_START:
                     {
-                        _currRoundStatus.SetNewStatus(RoundSequence.RS_LOOP_START);
+                        _currTurnPlayer = _playerManager.GetFirstTurnPlayer();
+
+                        _currRoundStatus.SetNewStatus(RoundSequence.RS_TURN_START);
                     }
                     break;
                 case RoundSequence.RS_LOOP_START:
                     {
+                        _currTurnPlayer = _playerManager.GetNextTurner(_currTurnPlayer);
+
                         _currRoundStatus.SetNewStatus(RoundSequence.RS_TURN_START);
                     }
                     break;
                 case RoundSequence.RS_TURN_START:
                     {
-                        _currRoundStatus.SetNewStatus(RoundSequence.RS_TAKE_2);
+                        _turnCount++;
+                        _rounder.OnTurnStart(_currTurnPlayer);
+                        _currRoundStatus.SetNewStatus(RoundSequence.RS_TAKE_CARDS);
                     }
                     break;
-                case RoundSequence.RS_TAKE_2:
-                    //if (_currTurnPlayer != null)
-                    //    _currTurnPlayer.Update(tick);
-                    _currRoundStatus.SetNewStatus(RoundSequence.RS_FIRST_CARD_DROP);
-                    break;
-                case RoundSequence.RS_FIRST_CARD_DROP:
+                case RoundSequence.RS_TAKE_CARDS:
                     {
                         //if (_currTurnPlayer != null)
                         //    _currTurnPlayer.Update(tick);
 
+                        int needCardCount = 4 - _currTurnPlayer._hands.Count;
+                        List<int> cards = _decks.GetRange(_deckIndex, needCardCount);
+                        _deckIndex += needCardCount;
+                        NetworkSender.Instance.SendTakeCards(_currTurnPlayer._playerId, cards);
+
+                        _currRoundStatus.SetNewStatus(RoundSequence.RS_THINK);
+                    }
+                    break;
+                case RoundSequence.RS_THINK:
+                    {
                         if (_currTurnPlayer._isAI == false)
                             break;  // waiting...
 
                         if (_rounder != null)
-                            _rounder.FirstCardThrow(_currTurnPlayer, tick);
+                        {
+                            _rounder.Think(_currTurnPlayer, tick);
+                        }
+                            
+
                     }
-
                     break;
-
-                case RoundSequence.RS_FIRST_CARD_DROPPING:
+                case RoundSequence.RS_PASSING:
                     _currRoundStatus._accumTime += tick;
                     if (_currRoundStatus._accumTime > CARD_THROW_TIMER)
                     {
-                        _currRoundStatus.SetNewStatus(RoundSequence.RS_SECOND_CARD_DROP);
+                        _currRoundStatus.SetNewStatus(RoundSequence.RS_TURN_END);
                     }
 
                     break;
-                case RoundSequence.RS_SECOND_CARD_DROP:
+                //case RoundSequence.RS_FIRST_CARD_PLACE:
+                //    {
+                //        //if (_currTurnPlayer != null)
+                //        //    _currTurnPlayer.Update(tick);
+
+                //        if (_currTurnPlayer._isAI == false)
+                //            break;  // waiting...
+
+                //        if (_rounder != null)
+                //            _rounder.FirstCardThrow(_currTurnPlayer, tick);
+
+                //        // pass
+                //    }
+
+                //    break;
+
+                case RoundSequence.RS_FIRST_CARD_PLACING:
+                    _currRoundStatus._accumTime += tick;
+                    if (_currRoundStatus._accumTime > CARD_THROW_TIMER)
                     {
-                        //if (_rounder != null)
-                        //    _rounder.SecondCardDrop(tick);
+                        _currRoundStatus.SetNewStatus(RoundSequence.RS_SECOND_CARD_PLACE);
+                    }
+                    break;
+                case RoundSequence.RS_SECOND_CARD_PLACE:
+                    {
+                        if (_currTurnPlayer._isAI == false)
+                            break;  // waiting...
+
+                        if (_rounder != null)
+                            _rounder.SecondCardChoice(_currTurnPlayer, tick);
                     }
 
                     break;
 
-                case RoundSequence.RS_SECOND_CARD_DROPPING:
+                case RoundSequence.RS_SECOND_CARD_PLACING:
                     _currRoundStatus._accumTime += tick;
                     if (_currRoundStatus._accumTime > CARD_THROW_TIMER)
                     {
@@ -306,7 +344,17 @@ namespace PokerH
                     }
                     break;
                 case RoundSequence.RS_WIN_CHECK:
-                    _currRoundStatus.SetNewStatus(RoundSequence.RS_LOOP_START);
+                    {
+                        if (_turnCount > 7)
+                        {
+                            _currRoundStatus.SetNewStatus(RoundSequence.RS_NONE);
+                            _currGameStatus.SetNewStatus(GameSequence.GS_RESULT);
+                        }
+                        else
+                        {
+                            _currRoundStatus.SetNewStatus(RoundSequence.RS_LOOP_START);
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -314,6 +362,13 @@ namespace PokerH
             }
         }
 
+        void DoCleanUp()
+        {
+            _turnCount = 0;
+            _boarder.OnCleanUp();
+            _rounder.OnCleanUp();
+            _playerManager.OnCleanUp();
+        }
 
         private void InitDeck()
         {
@@ -537,7 +592,7 @@ namespace PokerH
             {
                 Console.Write("[FromTan]  ");
             }
-            Console.WriteLine("DeckCount: {0}, TurnCount: {1}", 53 - _deckIndex, _turnCount);
+            Console.WriteLine("DeckCount: {0}, TurnCount: {1}/8", 53 - _deckIndex, _turnCount);
             //Console.Write("History : ");
             //foreach (int tc in _gameOverHistory)
             //{
@@ -547,8 +602,8 @@ namespace PokerH
 
             Console.ForegroundColor = defaultColor;
 
-            //_rounder.Render();
             _boarder.Render();
+            _rounder.Render();
             _playerManager.Render();
         }
 #endif
@@ -585,7 +640,58 @@ namespace PokerH
 
             //OnEventDeal2Cards(playerId, cards);
         }
+        public void HandleTakeCards(int playerId, List<int> cards)
+        {
+            Player p = _playerManager.GetPlayer(playerId);
+            p.AddCards(cards);
+
+            //OnEventDeal2Cards(playerId, cards);
+        }
+        public void HandlePass(int playerId)
+        {
+            Player p = _playerManager.GetPlayer(playerId);
+            p._hands.Clear();
+
+            _currRoundStatus.SetNewStatus(RoundSequence.RS_PASSING);
+            //OnEventDeal2Cards(playerId, cards);
+        }
+        public void HandleFirstPlace(int playerId, int y, int x, int card)
+        {
+            _boarder.PlaceCard(y, x, card);
+            Player p = _playerManager.GetPlayer(playerId);
+            bool success = p._hands.Remove(card);
+            if (success == false)
+            {
+#if LOGIC_CONSOLE_TEST
+                Debugger.Break();
+#else
+                UnityEngine.Debug.Log($"Check HandleFirstPlace playerId {playerId}  card {card}");
+                UnityEngine.Debug.Break();
+#endif
+            }
 
 
+            _currRoundStatus.SetNewStatus(RoundSequence.RS_FIRST_CARD_PLACING);
+            //OnEventDeal2Cards(playerId, cards);
+        }
+        public void HandleSecondPlace(int playerId, int y, int x, int card)
+        {
+            _boarder.PlaceCard(y, x, card);
+
+            Player p = _playerManager.GetPlayer(playerId);
+            bool success = p._hands.Remove(card);
+            if (success == false)
+            {
+#if LOGIC_CONSOLE_TEST
+                Debugger.Break();
+#else
+                UnityEngine.Debug.Log($"Check HandleFirstPlace playerId {playerId}  card {card}");
+                UnityEngine.Debug.Break();
+#endif
+            }
+
+            _currRoundStatus.SetNewStatus(RoundSequence.RS_SECOND_CARD_PLACING);
+            //OnEventDeal2Cards(playerId, cards);
+        }
     }
 }

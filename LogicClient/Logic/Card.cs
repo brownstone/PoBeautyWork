@@ -120,7 +120,7 @@ namespace PokerH
             if (n == 0)
             {
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write("   ");
+                Console.Write("    ");
                 Console.ForegroundColor = defaultColor;
                 return;
             }
@@ -131,7 +131,7 @@ namespace PokerH
             if (IsJoker(n) == true)
             {
                 Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("Jo ");
+                Console.Write(" Jo ");
                 Console.ForegroundColor = defaultColor;
                 return;
             }
@@ -159,7 +159,7 @@ namespace PokerH
             string[] suits = { "N", "S", "D", "H", "C" };
             string[] nums = { "N", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A" };
 
-            Console.Write("{0, 1}{1, 1} ", suits[cardColor], nums[cardNum]);
+            Console.Write(" {0, 1}{1, 1} ", suits[cardColor], nums[cardNum]);
             Console.ForegroundColor = defaultColor;
         }
 #endif

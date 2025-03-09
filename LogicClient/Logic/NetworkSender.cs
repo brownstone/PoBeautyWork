@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -75,5 +76,54 @@ namespace PokerH
             }
         }
 
+        public void SendTakeCards(int playerId, List<int> cards)
+        {
+            //if (bUsePacketQueue)
+            //{
+            //    SCInitialMelt pkt = new SCInitialMelt((ushort)PacketID.InitialMelt, playerId, hbtileSets);
+            //    _room.AddPacketQueue(pkt);
+            //}
+            //else
+            {
+                _room.HandleTakeCards(playerId, cards);
+            }
+        }
+        public void SendPass(int playerId)
+        {
+            //if (bUsePacketQueue)
+            //{
+            //    SCInitialMelt pkt = new SCInitialMelt((ushort)PacketID.InitialMelt, playerId, hbtileSets);
+            //    _room.AddPacketQueue(pkt);
+            //}
+            //else
+            {
+                _room.HandlePass(playerId);
+            }
+        }
+
+        public void SendFirstPlace(int playerId, int y, int x, int card)
+        {
+            //if (bUsePacketQueue)
+            //{
+            //    SCInitialMelt pkt = new SCInitialMelt((ushort)PacketID.InitialMelt, playerId, hbtileSets);
+            //    _room.AddPacketQueue(pkt);
+            //}
+            //else
+            {
+                _room.HandleFirstPlace(playerId, y, x, card);
+            }
+        }
+        public void SendSecondPlace(int playerId, int y, int x, int card)
+        {
+            //if (bUsePacketQueue)
+            //{
+            //    SCInitialMelt pkt = new SCInitialMelt((ushort)PacketID.InitialMelt, playerId, hbtileSets);
+            //    _room.AddPacketQueue(pkt);
+            //}
+            //else
+            {
+                _room.HandleSecondPlace(playerId, y, x, card);
+            }
+        }
     }
 }

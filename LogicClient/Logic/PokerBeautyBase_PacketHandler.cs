@@ -25,6 +25,22 @@ namespace PokerH
         {
             _dealer.HandleDeal2Cards(playerId, cards);
         }
+        public void HandleTakeCards(int playerId, List<int> cards)
+        {
+            _dealer.HandleTakeCards(playerId, cards);
+        }
+        public void HandlePass(int playerId)
+        {
+            _dealer.HandlePass(playerId);
+        }
+        public void HandleFirstPlace(int playerId, int y, int x, int card)
+        {
+            _dealer.HandleFirstPlace(playerId, y, x, card);
+        }
+        public void HandleSecondPlace(int playerId, int y, int x, int card)
+        {
+            _dealer.HandleSecondPlace(playerId, y, x, card);
+        }
 
         #endregion
     }
