@@ -44,6 +44,7 @@ namespace PokerH
         public Action<int> _OnTurnStart;
         public Action<int> _OnTurnEnd;
         public Action<int, int, int, int> _OnPlaceCard;
+        public Action<int, int> _OnAttackDamage;
         public Action<int> _OnPass;
         public Action<int> _OnGameResult;
         public Action _OnCleanUp;
@@ -266,6 +267,7 @@ namespace PokerH
                     break;
                 case RoundSequence.RS_TURN_START:
                     {
+                        _OnTurnStart?.Invoke(_currTurnPlayer._playerId);
                         _turnCount++;
                         _rounder.OnTurnStart(_currTurnPlayer);
                         _currRoundStatus.SetNewStatus(RoundSequence.RS_TAKE_CARDS);
@@ -341,7 +343,7 @@ namespace PokerH
 
                 case RoundSequence.RS_SECOND_CARD_PLACING:
                     _currRoundStatus._accumTime += tick;
-                    if (_currRoundStatus._accumTime > CARD_THROW_TIMER)
+                    if (_currRoundStatus._accumTime > (CARD_THROW_TIMER * 2))
                     {
                         _currRoundStatus.SetNewStatus(RoundSequence.RS_DAMAGE);
                     }
@@ -349,6 +351,9 @@ namespace PokerH
                     break;
                 case RoundSequence.RS_DAMAGE:
                     {
+                        if (_rounder != null)
+                            _rounder.SecondCardChoice(_currTurnPlayer, tick);
+
                         _currRoundStatus.SetNewStatus(RoundSequence.RS_TURN_END);
                     }
                     break;
@@ -661,7 +666,7 @@ namespace PokerH
             _currRoundStatus.SetNewStatus(RoundSequence.RS_FIRST_CARD_PLACING);
             //OnEventDeal2Cards(playerId, cards);
         }
-        public void HandleSecondPlace(int playerId, int y, int x, int card)
+        public void HandleSecondPlace(int playerId, int y, int x, int card, int rank)
         {
             _boarder.PlaceCard(y, x, card);
 
@@ -678,6 +683,7 @@ namespace PokerH
             }
 
             _OnPlaceCard?.Invoke(playerId, y, x, card);
+            _OnAttackDamage?.Invoke(playerId, rank);
 
             _currRoundStatus.SetNewStatus(RoundSequence.RS_SECOND_CARD_PLACING);
             //OnEventDeal2Cards(playerId, cards);

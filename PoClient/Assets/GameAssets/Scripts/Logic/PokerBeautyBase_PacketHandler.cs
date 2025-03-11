@@ -33,9 +33,9 @@ namespace PokerH
         {
             _dealer.HandleFirstPlace(playerId, y, x, card);
         }
-        public void HandleSecondPlace(int playerId, int y, int x, int card)
+        public void HandleSecondPlace(int playerId, int y, int x, int card, int rank)
         {
-            _dealer.HandleSecondPlace(playerId, y, x, card);
+            _dealer.HandleSecondPlace(playerId, y, x, card, rank);
         }
 
         #endregion

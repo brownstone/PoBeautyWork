@@ -21,11 +21,13 @@ public class TheRedDotGame : MonoBehaviour
     PlayerInfo[] _playerInfos = new PlayerInfo[2] { new PlayerInfo(), new PlayerInfo() };
 
     CardController CardCont { get; set; }
+    BottomPlayerController BottomPlayerCont { get; set; }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         CardCont = FindFirstObjectByType<CardController>();
+        BottomPlayerCont = FindFirstObjectByType<BottomPlayerController>();
 
         _gameLogic.Init();
         _gameLogic.AddFakeUser(MyPlayerId);
@@ -39,6 +41,7 @@ public class TheRedDotGame : MonoBehaviour
         _gameLogic._dealer._OnTurnStart += OnEventTurnStart;
         _gameLogic._dealer._OnTurnEnd += OnEventTurnEnd;
         _gameLogic._dealer._OnPlaceCard += OnEventPlaceCard;
+        _gameLogic._dealer._OnAttackDamage += OnEventAttackDamage;
         _gameLogic._dealer._OnPass += OnEventPass;
         _gameLogic._dealer._OnGameResult += OnEventGameResult;
         _gameLogic._dealer._OnCleanUp += OnEventCleanUp;
@@ -109,6 +112,7 @@ public class TheRedDotGame : MonoBehaviour
     }
     void OnEventTurnStart(int playerId)
     {
+        BottomPlayerCont.OnTurnStart();
 
     }
     void OnEventTurnEnd(int playerId)
@@ -119,6 +123,11 @@ public class TheRedDotGame : MonoBehaviour
     {
         int playerIndex = GetPlayerIndex(playerId);
         CardCont.OnPlaceCard(playerId, playerIndex, y, x, card);
+    }
+    void OnEventAttackDamage(int playerId, int rank)
+    {
+        int playerIndex = GetPlayerIndex(playerId);
+        BottomPlayerCont.OnAttackDamage(playerId, playerIndex, rank);
     }
     void OnEventPass(int playerId)
     {
@@ -133,6 +142,7 @@ public class TheRedDotGame : MonoBehaviour
     void OnEventCleanUp()
     {
         CardCont.OnCleanUp();
+        BottomPlayerCont.OnCleanUp();
     }
 
 }

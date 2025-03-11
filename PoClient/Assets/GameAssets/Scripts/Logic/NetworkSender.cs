@@ -100,7 +100,7 @@ namespace PokerH
                 _room.HandleFirstPlace(playerId, y, x, card);
             }
         }
-        public void SendSecondPlace(int playerId, int y, int x, int card)
+        public void SendSecondPlace(int playerId, int y, int x, int card, int rank)
         {
             //if (bUsePacketQueue)
             //{
@@ -109,7 +109,7 @@ namespace PokerH
             //}
             //else
             {
-                _room.HandleSecondPlace(playerId, y, x, card);
+                _room.HandleSecondPlace(playerId, y, x, card, rank);
             }
         }
     }

@@ -114,7 +114,7 @@ namespace PokerH
             int y = GetSecondY(_topBeautyResult.index);
             int x = GetSecondX(_topBeautyResult.index);
 
-            NetworkSender.Instance.SendSecondPlace(player._playerId, y, x, _topBeautyResult.cardSecond);
+            NetworkSender.Instance.SendSecondPlace(player._playerId, y, x, _topBeautyResult.cardSecond, _topBeautyResult.rank);
             _sendSecondCard = true;
         }
 
