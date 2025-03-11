@@ -408,7 +408,7 @@ namespace PokerH
                 LINE_2 + 1,  LINE_2 + 2,  LINE_2 + 3,  LINE_2 + 4,  LINE_2 + 5,  LINE_2 + 6,  LINE_2 + 7,  LINE_2 + 8,  LINE_2 + 9,  LINE_2 + 10, LINE_2 + 11, LINE_2 + 12, LINE_2 + 13,
                 LINE_3 + 1,  LINE_3 + 2,  LINE_3 + 3,  LINE_3 + 4,  LINE_3 + 5,  LINE_3 + 6,  LINE_3 + 7,  LINE_3 + 8,  LINE_3 + 9,  LINE_3 + 10, LINE_3 + 11, LINE_3 + 12, LINE_3 + 13,
                 LINE_4 + 1,  LINE_4 + 2,  LINE_4 + 3,  LINE_4 + 4,  LINE_4 + 5,  LINE_4 + 6,  LINE_4 + 7,  LINE_4 + 8,  LINE_4 + 9,  LINE_4 + 10, LINE_4 + 11, LINE_4 + 12, LINE_4 + 13,
-                53
+                53,54,55,56,57,58,59
             };
 
             return newDeck;
@@ -507,7 +507,6 @@ namespace PokerH
                         _decks[i] = _decks[randomIndex];
                         _decks[randomIndex] = temp;
                     }
-                    _deckIndex = 0;
 #endif
 
 #if LOGIC_CONSOLE_TEST
@@ -551,7 +550,7 @@ namespace PokerH
 
             }
 
-            if (_decks.Count != 53)
+            if (_decks.Count != Card.MAX_CARD_COUNT)
             {
 #if LOGIC_CONSOLE_TEST
                 Console.WriteLine(" ** Invalid deck count : {0} ", _decks.Count);

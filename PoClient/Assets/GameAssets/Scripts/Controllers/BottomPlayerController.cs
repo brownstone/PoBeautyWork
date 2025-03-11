@@ -96,4 +96,15 @@ public class BottomPlayerController : MonoBehaviour
         _txtDamage0.text = "";
         _txtDamage1.text = "";
     }
+
+    public void OnTouch()
+    {
+        _txtDamage0.text = "Touch";
+
+    }
+    public void OnClick()
+    {
+        _txtDamage1.text = "Click";
+
+    }
 }

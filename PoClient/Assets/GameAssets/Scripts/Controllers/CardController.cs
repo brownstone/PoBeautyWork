@@ -41,7 +41,7 @@ public class CardController : MonoBehaviour
             Debug.Break();
         }
 
-        for (int i = 0; i < Card.MAX_CARD_COUNT; i++) // 53
+        for (int i = 0; i < Card.MAX_CARD_COUNT; i++) // 59
         {
             int c = i + 1;
 
@@ -64,7 +64,7 @@ public class CardController : MonoBehaviour
                             "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "DT", "DJ", "DQ", "DK", "DA",
                             "H2", "H3", "H4", "H5", "H6", "H7", "H8", "H9", "HT", "HJ", "HQ", "HK", "HA",
                             "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "CT", "CJ", "CQ", "CK", "CA",
-                            "JK" };
+                            "JK", "JK", "JK", "JK", "JK", "JK", "JK"};
 
 
         return "cards_" + names[c];

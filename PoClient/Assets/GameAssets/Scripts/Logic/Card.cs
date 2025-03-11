@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.VisualScripting.Antlr3.Runtime;
 
 namespace PokerH
 {
@@ -15,9 +16,15 @@ namespace PokerH
         static readonly int MAX_CARD_NUMBER_COUNT = 13; // 1(2), 2(3), 9(T), 10(J), 11(Q), 12(K), 13(A) ... 13
         static readonly int MAX_CARD_SUIT_COUNT = 4;   // 1(S), 2(D), 3(H), 4(C)
         static readonly int MAX_CARD_FULL_COUNT = MAX_CARD_NUMBER_COUNT * MAX_CARD_SUIT_COUNT; // 13 * 4 = 52 { 1... 52 }
-        static readonly int MAX_CARD_JOKER_COUNT = 1;
-        public static readonly int MAX_CARD_COUNT = MAX_CARD_FULL_COUNT + MAX_CARD_JOKER_COUNT; // 52 + 1 = 53
+        static readonly int MAX_CARD_JOKER_COUNT = 7;
+        public static readonly int MAX_CARD_COUNT = MAX_CARD_FULL_COUNT + MAX_CARD_JOKER_COUNT; // 52 + 7 = 59
         public static readonly int JOKER1 = MAX_CARD_FULL_COUNT + 1; // 53
+        public static readonly int JOKER2 = MAX_CARD_FULL_COUNT + 2; // 54
+        public static readonly int JOKER3 = MAX_CARD_FULL_COUNT + 3; // 55
+        public static readonly int JOKER4 = MAX_CARD_FULL_COUNT + 4; // 56
+        public static readonly int JOKER5 = MAX_CARD_FULL_COUNT + 5; // 57
+        public static readonly int JOKER6 = MAX_CARD_FULL_COUNT + 6; // 58
+        public static readonly int JOKER7 = MAX_CARD_FULL_COUNT + 7; // 59
 
         public static readonly int AceNum = 13; // Spade Ace
         public static readonly int SpadeAce = 13; // Spade Ace
@@ -36,7 +43,7 @@ namespace PokerH
         }
         static public bool IsJoker(int c)
         {
-            if (c == JOKER1)
+            if (c == JOKER1 || c == JOKER2 || c == JOKER3 || c == JOKER4 || c == JOKER5 || c == JOKER6 || c == JOKER7)
                 return true;
 
             return false;
