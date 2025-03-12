@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SlotController : MonoBehaviour
 {
@@ -30,7 +31,6 @@ public class SlotController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
     public SlotComponent GetBoarderSlot(int y, int x)
     {

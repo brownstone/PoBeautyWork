@@ -4,19 +4,15 @@ using UnityEngine.InputSystem;
 
 public class DragController : MonoBehaviour
 {
-    BottomPlayerController BottomPlayerCont { get; set; }
-
-    CardComponent _currCard;
-
     PlayerInput _playerInput;
     InputAction _touchPressAction;
     InputAction _touchPositionAction;
 
-    InputAction _mousePressAction;
-    InputAction _mousePositionAction;
 
-    Action _OnTouch;
-    Action _OnClick;
+    GameObject _currObject = null;
+    bool _isDragging;
+    Vector2 _dragOffset;
+
 
     private void Awake()
     {
@@ -24,59 +20,49 @@ public class DragController : MonoBehaviour
         _touchPressAction = _playerInput.actions["TouchPress"];
         _touchPositionAction = _playerInput.actions["TouchPosition"];
 
-        _mousePressAction = _playerInput.actions["MousePress"];
-        _mousePositionAction = _playerInput.actions["MousePosition"];
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        BottomPlayerCont = FindFirstObjectByType<BottomPlayerController>();
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_touchPressAction.WasPerformedThisFrame())
+        if (_isDragging == false)
         {
-            Debug.Log("Touch action was pressed");
-            GameObject targetCard = TouchHitCard();
-            if (targetCard != null)
+            if (_touchPressAction.WasPressedThisFrame())
             {
-                CardComponent cardComp = targetCard.GetComponent<CardComponent>();
-                OnCardClick(cardComp);
+                GameObject targetCard = CheckHitCard();
+                if (targetCard != null)
+                {
+                    _currObject = targetCard;
+                    _isDragging = true;
+                    _dragOffset = (Vector2)_currObject.transform.position - GetTouchWorldPoint();
+                }
             }
         }
-
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if (_touchPressAction.IsPressed() && _currObject != null)
         {
-            Debug.Log("Mouse was pressed");
+            DragObject();
         }
-        if (Mouse.current.leftButton.isPressed)
-        {
-            Debug.Log("Mouse pressed");
-        }
-        //Vector3 mpos = Mouse.current.position.ReadValue();
-        //Debug.Log(mpos);
 
-        if (_mousePressAction.WasPerformedThisFrame())
+        if (_touchPressAction.WasReleasedThisFrame() && _currObject != null)
         {
-            Debug.Log("Mouse action was pressed");
-            GameObject targetCard = ClickHitCard();
-            if (targetCard != null)
-            {
-                CardComponent cardComp = targetCard.GetComponent<CardComponent>();
-                OnCardClick(cardComp);
-            }
+            DropObject();
         }
     }
 
-    void OnCardClick(CardComponent cardComp)
+    void DragObject()
     {
+        Vector2 pos = GetTouchWorldPoint() + _dragOffset;
+        Vector3 curPos = new Vector3(pos.x, pos.y, -1.0f);
+        _currObject.transform.position = curPos;
+    }
+    void DropObject()
+    {
+        _isDragging = false;
+        _currObject = null;
     }
 
-    GameObject TouchHitCard()
+
+    GameObject CheckHitCard()
     {
         int layerMask = LayerMask.GetMask("Card");
         RaycastHit2D hit = Physics2D.GetRayIntersection(GetTouchScreenRay(), Mathf.Infinity, layerMask);
@@ -88,32 +74,15 @@ public class DragController : MonoBehaviour
         return null;
     }
 
+    private Vector2 GetTouchWorldPoint()
+    {
+        Vector2 touchPos = _touchPositionAction.ReadValue<Vector2>();
+        return Camera.main.ScreenToWorldPoint(touchPos);
+    }
+
     Ray GetTouchScreenRay()
     {
         Vector2 touchPos = _touchPositionAction.ReadValue<Vector2>();
         return Camera.main.ScreenPointToRay(touchPos);
-        //return Camera.main.ScreenPointToRay(Input.mousePosition);
     }
-
-    GameObject ClickHitCard()
-    {
-        int layerMask = LayerMask.GetMask("Card");
-        RaycastHit2D hit = Physics2D.GetRayIntersection(GetClickScreenRay(), Mathf.Infinity, layerMask);
-
-        if (hit.collider != null)
-        {
-            return hit.transform.gameObject;
-        }
-        return null;
-    }
-
-    Ray GetClickScreenRay()
-    {
-        Vector2 mousePos = _mousePositionAction.ReadValue<Vector2>();
-        return Camera.main.ScreenPointToRay(mousePos);
-        //return Camera.main.ScreenPointToRay(Input.mousePosition);
-    }
-
-
-
 }
